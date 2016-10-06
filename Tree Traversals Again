@@ -1,0 +1,55 @@
+#include <iostream>
+#include <stack>
+#include <string>
+using namespace std;
+
+void genaratePostArr(int *preArr, int *inArr, int *postArr, int n);
+/*入栈为先序遍历，出栈为中序遍历*/
+int main(void) {
+	int n;
+	cin >> n;
+	int *preArr = new int[n];
+	int *inArr = new int[n];
+	int *postArr = new int[n];
+
+	//建立先序、中序数组。
+	stack<int> stk;
+	string str;
+	for (int i = 0, preIndex = 0, inIndex = 0; i < 2*n; i++) {
+		cin >> str;
+		if ("Push" == str) {
+			cin >> preArr[preIndex];
+			stk.push(preArr[preIndex++]);
+		} else {
+			inArr[inIndex++] = stk.top();
+			stk.pop();
+		}
+	}
+	
+	//产生后序遍历数组
+	genaratePostArr(preArr, inArr, postArr, n);
+	cout << postArr[0];
+	for (int i = 1; i < n; i++)
+		cout << " " << postArr[i];
+
+	return 0;
+}
+
+void genaratePostArr(int *preArr, int *inArr, int *postArr, int n) {
+	int leftNum = 0;
+	int rightNum = 0;
+	
+	postArr[n - 1] = preArr[0];
+	for (int i = 0; i < n; i++) {
+		if (preArr[0] == inArr[i]) {
+			leftNum = i;
+			rightNum = n - 1 - leftNum;
+			break;
+		}
+	}
+
+	if (0 != leftNum)
+		genaratePostArr(preArr + 1, inArr, postArr, leftNum);
+	if (0 != rightNum)
+		genaratePostArr(preArr + leftNum + 1, inArr + leftNum + 1, postArr + leftNum, rightNum);
+}
