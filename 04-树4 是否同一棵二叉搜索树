@@ -1,0 +1,116 @@
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+class Node {
+public:
+	Node(int data = 0);
+public:
+	int data;
+	Node *left;
+	Node *right;
+	bool isVisited;
+};
+Node::Node(int data) {
+	this->data = data;
+	left = right = NULL;
+	isVisited = false;
+}
+typedef Node *Tree;
+
+Tree BuildTree(int n);
+void insertNode(Tree &tree, int &data);
+bool Judge(Tree tree, int n);
+bool checkNode(Tree &tree, int data);
+void ResetTree(Tree tree);
+void FreeTree(Tree tree);
+
+int main(void) {
+	int n, l;
+	cin >> n;
+	vector<string> vec;
+	while (0 != n) {
+		cin >> l;
+		Tree tree = BuildTree(n);
+		for (int i = 0; i < l; i++) {
+			if (Judge(tree, n)) vec.push_back("Yes");
+			else vec.push_back("No");
+			ResetTree(tree);
+		}
+		FreeTree(tree);
+		cin >> n;
+	}
+
+	for (auto iter = vec.begin(); iter != vec.end(); iter++)
+		cout << *iter << endl;
+
+	return 0;
+}
+
+Tree BuildTree(int n) {
+	Tree tree = NULL;
+	int data;
+	for (int i = 0; i < n; i++) {
+		cin >> data;
+		insertNode(tree, data);
+	}
+	return tree;
+}
+
+void insertNode(Tree &tree, int &data) {
+	if (NULL == tree) {
+		tree = new Node(data);
+	} else {
+		if (data < tree->data)
+			insertNode(tree->left, data);
+		else
+			insertNode(tree->right, data);
+	}
+}
+
+bool Judge(Tree tree, int n) {
+	int data;
+	bool flag = true;
+	for (int i = 0; i < n; i++) {
+		cin >> data;
+		if (flag && !checkNode(tree, data)) {
+			flag = false;
+		}
+	}
+	if (flag) return true;
+	return false;
+}
+
+bool checkNode(Tree &tree, int data) {
+	if (!tree->isVisited) {
+		if (data == tree->data) {
+			tree->isVisited = true;
+			return true;
+		} 
+		else return false;
+	} else {
+		if (data < tree->data)
+			return checkNode(tree->left, data);
+		else
+			return checkNode(tree->right, data);
+	}
+}
+
+void ResetTree(Tree tree) {
+	if (NULL != tree) tree->isVisited = false;
+	if (NULL != tree->left)
+		ResetTree(tree->left);
+	if (NULL != tree->right)
+		ResetTree(tree->right);
+}
+
+void FreeTree(Tree tree) {
+	if (NULL == tree) return;
+	if (tree->left != NULL)
+		FreeTree(tree->left);
+	if (tree->right != NULL)
+		FreeTree(tree->right);
+	delete tree;
+	tree = NULL;
+}
