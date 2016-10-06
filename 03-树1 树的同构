@@ -1,0 +1,69 @@
+#include <iostream>
+using namespace std;
+
+const int N = 10;
+const int ERR = -1;
+struct Node{
+	char data;
+	int left;
+	int right;
+} tree1[N], tree2[N];
+typedef struct Node *Tree;
+
+int BuildTree(Tree tree);
+bool isIsomorphic(int root1, int root2);
+
+int main(void) {
+	int root1 = BuildTree(tree1);
+	int root2 = BuildTree(tree2);
+	if (isIsomorphic(root1, root2)) 
+		cout << "Yes";
+	else 
+		cout << "No";
+
+	return 0;
+}
+
+int BuildTree(Tree tree) {
+	int n;
+	cin >> n;
+	bool *rootArr = new bool[n];
+	for (int i = 0; i < n; i++)
+		rootArr[i] = true;
+	//输入节点数据
+	char leftCh;
+	char rightCh;
+	for (int i = 0; i < n; i++) {
+		cin >> tree[i].data >> leftCh >> rightCh;
+		if ('-' == leftCh) tree[i].left = ERR;
+		else {
+			tree[i].left = leftCh - '0';
+			rootArr[leftCh - '0'] = false;
+		}
+		if ('-' == rightCh) tree[i].right = ERR;
+		else {
+			tree[i].right = rightCh - '0';
+			rootArr[rightCh - '0'] = false;
+		}
+	}
+	//找出树根
+	for (int i = 0; i < n; i++) {
+		if (rootArr[i]) return i;
+	}
+	return ERR;	//表示输入数据有误。
+}
+
+bool isIsomorphic(int root1, int root2) {
+	if (ERR == root1 && ERR == root2) return true;
+	if(ERR == root1 && ERR != root2 || ERR != root1 && ERR == root2) return false;
+	if (tree1[root1].data != tree2[root2].data) return false;
+	if (ERR == tree1[root1].left && ERR == tree2[root2].left)
+		return isIsomorphic(tree1[root2].right, tree2[root2].right);
+	if (ERR != tree1[root1].left && ERR != tree2[root2].left
+		&& tree1[tree1[root1].left].data == tree2[tree2[root2].left].data)
+		return isIsomorphic(tree1[root1].left, tree2[root2].left) 
+		&& isIsomorphic(tree1[root1].right, tree2[root2].right);
+	else
+		return isIsomorphic(tree1[root1].left, tree2[root2].right) 
+		&& isIsomorphic(tree1[root1].right, tree2[root2].left);
+}
