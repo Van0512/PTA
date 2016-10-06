@@ -1,0 +1,67 @@
+#include <iostream>
+#include <queue>
+using namespace std;
+
+typedef struct {
+	int data;
+	int left;
+	int right;
+} Node;
+
+int main(void) {
+	int n;
+	cin >> n;
+	Node *tree = new Node[n];	//建树，数组实现。
+	bool *rootArr = new bool[n];	//辅助找出根节点索引
+	for (int i = 0; i < n; i++)
+		rootArr[i] = true;
+
+	char leftCh;
+	char rightCh;
+	int leftNum;
+	int rightNum;
+	for (int i = 0; i < n; i++) {
+		cin >> leftCh >> rightCh;
+		if ('-' == leftCh) leftNum = -1;
+		else leftNum = leftCh - '0';
+		if ('-' == rightCh) rightNum = -1;
+		else rightNum = rightCh - '0';
+
+		tree[i].data = i;
+		tree[i].left = leftNum;
+		tree[i].right = rightNum;
+		if (leftNum != -1) rootArr[leftNum] = false;
+		if (rightNum != -1) rootArr[rightNum] = false;
+	}
+
+	//找出根节点索引
+	int rootIndex = 0;
+	for (int i = 0; i < n; i++) {
+		if (rootArr[i]) {
+			rootIndex = i;
+			break;
+		}
+	}
+
+	//层序遍历
+	queue<Node> que;
+	que.push(tree[rootIndex]);
+	bool firstInput = true;
+	while (!que.empty()) {
+		Node tmp = que.front();
+		que.pop();
+		if (-1 == tmp.left && -1 == tmp.right) {
+			if (firstInput) {
+				cout << tmp.data;
+				firstInput = false;
+			}
+			else
+				cout << " " << tmp.data;
+		}
+		if (tmp.left != -1) que.push(tree[tmp.left]);
+		if (tmp.right != -1) que.push(tree[tmp.right]);
+	}
+
+	delete[]tree;
+	return 0;
+}
