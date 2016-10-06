@@ -21,7 +21,7 @@ int main(void) {
 	int leftNum;
 	int rightNum;
 	for (int i = 0; i < n; i++) {
-		cin >> leftCh >> rightCh;
+		cin >> leftCh >> rightCh; 
 		if ('-' == leftCh) leftNum = -1;
 		else leftNum = leftCh - '0';
 		if ('-' == rightCh) rightNum = -1;
