@@ -1,0 +1,62 @@
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+using namespace std;
+ 
+/*
+根据CBT中的先序遍历，装填层序遍历数组。
+root 表示装填在levelArr中的位置。 
+*/
+void fillLevelArr(int *, int *, int root, int);
+//计算出左右子树节点个数，并返回分割点的索引。 
+int cntNodesOfSubTree(int *leftPtr, int *rightPtr, int n);
+ 
+int main(void) {
+	int n;
+	cin >> n;
+	int *preArr = new int[n];
+	int *levelArr = new int[n];
+	for(int i = 0; i < n; i++)
+		cin >> preArr[i];
+	//将数据从小到大排序，顺序输入的是先序遍历的结果。
+	sort(preArr, preArr + n); 
+	fillLevelArr(preArr, levelArr, 0, n);
+	cout << levelArr[0];
+	for(int i = 1; i < n; i++)
+		cout << " " << levelArr[i];
+	
+	return 0;
+}
+
+void fillLevelArr(int *preArr, int *levelArr, int root, int n) {
+	if(0 == n) return ; 
+	int leftNum = 0;
+	int rightNum = 0; 
+	int pointOfDivision = cntNodesOfSubTree(&leftNum, &rightNum, n);
+	levelArr[root] = preArr[pointOfDivision];
+	fillLevelArr(preArr, levelArr, 2*root + 1, leftNum);
+	fillLevelArr(preArr + 1 + leftNum, levelArr, root*2 + 2, rightNum); 
+}
+
+//在 fillLevelArr 函数中，确保了n值是大于0的，所以expon一定不小于1。 
+int cntNodesOfSubTree(int *leftPtr, int *rightPtr, int n) {
+	int expon = 0;	//层数 
+	while(n > pow(2, expon) - 1) expon++;
+	int root = 0;
+	if(expon == 1) {
+		root = 0;
+		*leftPtr = *rightPtr = 0;
+	} else {
+		 if(n <= pow(2, expon - 1) - 1 + pow(2, expon - 2)) {
+		 	*rightPtr = pow(2, expon - 2) - 1;
+		 	*leftPtr = n - 1 - *rightPtr;
+		 	root = *leftPtr;
+		 } else {
+		 	*leftPtr = pow(2, expon - 1) - 1;
+		 	*rightPtr = n - 1 - *leftPtr;
+		 	root = *leftPtr;
+		 }
+	}
+	
+	return root; 
+}
