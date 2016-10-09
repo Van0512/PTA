@@ -1,0 +1,106 @@
+#include <iostream>
+#include <climits>
+using namespace std;
+
+typedef int ElemType;
+class MinHeap {
+public:
+	MinHeap(int capacity);	//建堆，传入堆的容量。
+	~MinHeap();
+	bool isEmpty() const;
+	bool isFull() const;
+	bool insertElem(ElemType &elem);
+	ElemType deleteTop();
+	void printPath(int index);
+private:
+	ElemType *arr;
+	int capacity;
+	int len;
+};
+
+/*
+数组长度为堆容量+1。
+0号元素作为“哨兵”，在最小堆中，设置为比所有元素都小的值。
+1号元素作为根节点，那么父子节点下标有如下关系：
+	leftChild = parent * 2;
+	rightChild = parent * 2 + 1;
+	parent = Child/2;
+*/
+MinHeap::MinHeap(int capacity) {
+	arr = new ElemType[capacity + 1];
+	this->capacity = capacity;
+	len = 0;
+	arr[0] = INT_MIN;
+}
+
+MinHeap::~MinHeap() {
+	delete[] arr;
+	arr = NULL;
+}
+
+bool MinHeap::isEmpty() const {
+	return 0 == len;
+}
+
+bool MinHeap::isFull() const {
+	return len == capacity;
+}
+
+bool MinHeap::insertElem(ElemType &elem) {
+	if (isFull()) return false;
+	/*
+	上滤。
+	如果父节点的数据值比elem大，那么把父节点的数据值拷贝到要插入的子节点中。
+	把子节点的下标更新为父节点，继续。
+	若父节点的数据值比elem小，那么elem就可以插入。
+	*/
+	int child = ++len;
+	for (; arr[child / 2] > elem; child /= 2)
+		arr[child] = arr[child / 2];		//上滤 child = parent
+	arr[child] = elem;
+	return true;
+}
+
+ElemType MinHeap::deleteTop() {
+	if (isEmpty()) return INT_MIN;	//error
+	ElemType minItem = arr[1];
+	/*
+	下滤。
+	模拟将最后一个元素提到根节点的位置向下层节点过滤的过程。
+	*/
+	ElemType tmp = arr[len--];
+	int parent = 1;
+	for (int child = 2 * parent; child <= len; child *= 2) {	//如果有左孩子
+		if (child < len && arr[child] > arr[child + 1]) child++;	//child指向数据值较小的子节点。
+		if (tmp <= arr[child]) break;
+		else arr[parent] = arr[child];	//下滤。
+		parent = child;
+	}
+	arr[parent] = tmp;
+	return minItem;
+}
+
+void MinHeap::printPath(int index) {
+	cout << arr[index];
+	while (index > 1) {
+		index /= 2;
+		cout << " " << arr[index];
+	}
+	cout << endl;
+}
+
+int main(void) {
+	int n, m, elem;
+	cin >> n >> m;
+	MinHeap heap(n);
+	for (int i = 0; i < n; i++) {
+		cin >> elem;
+		heap.insertElem(elem);
+	}
+	for (int i = 0; i < m; i++) {
+		cin >> elem;
+		heap.printPath(elem);
+	}
+
+	return 0;
+}
