@@ -1,0 +1,213 @@
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <string>
+using namespace std;
+#define MINHEAP priority_queue<HuffmanNode *, vector<HuffmanNode *>, comp>
+
+/*由于输入的字符没用，所以只设置一个存储权重的整型变量就可以了；*/
+class HuffmanNode {
+public:
+	HuffmanNode(int weight = 0);
+	~HuffmanNode();
+	int WPL(int depth = 0 /*Depth of root must be setted by 0*/);
+public:
+// 	char ch;
+	int weight;
+	HuffmanNode *left;
+	HuffmanNode *right;
+};
+
+HuffmanNode::HuffmanNode(int weight) {
+	this->weight = weight;
+	left = right = NULL;
+}
+
+HuffmanNode::~HuffmanNode() {
+	if (left != NULL) {
+		delete left;
+		left = NULL;
+	}
+	if (right != NULL) {
+		delete right;
+		right = NULL;
+	}
+}
+
+int HuffmanNode::WPL(int depth) {
+	if (NULL == left && NULL == right)
+		return depth * weight;
+	return left->WPL(depth + 1) + right->WPL(depth + 1);
+}
+
+
+//比较器
+struct comp {
+	bool operator() (HuffmanNode *node1, HuffmanNode *node2) {
+		return node1->weight > node2->weight;
+	}
+};
+
+
+//哈夫曼树类
+class HuffmanTree {
+public:
+	HuffmanTree(HuffmanNode *node = NULL);	//生成一颗 Huffman Tree。
+	~HuffmanTree();
+	bool createHuffmanTreeByMinHeap(MINHEAP &minHeap);
+	int WPL();
+private:
+	HuffmanNode *pRoot;
+};
+
+HuffmanTree::HuffmanTree(HuffmanNode *node) {
+	pRoot = node;
+}
+
+HuffmanTree::~HuffmanTree() {
+	if (pRoot != NULL) {
+		delete pRoot;
+		pRoot = NULL;
+	}
+}
+
+bool HuffmanTree::createHuffmanTreeByMinHeap(MINHEAP &minHeap) {
+	if (pRoot != NULL) return false;
+	while (minHeap.size() != 1) {
+		HuffmanNode *minNode1 = minHeap.top();
+		minHeap.pop();
+		HuffmanNode *minNode2 = minHeap.top();
+		minHeap.pop();
+		HuffmanNode *newNode = new HuffmanNode;
+		newNode->weight = minNode1->weight + minNode2->weight;
+		newNode->left = minNode1;
+		newNode->right = minNode2;
+		minHeap.push(newNode);
+	}
+	pRoot = minHeap.top();
+	minHeap.pop();
+	return true;
+}
+
+int HuffmanTree::WPL() {
+	if (NULL == pRoot) return -1;	//Error!
+	return pRoot->WPL();
+}
+
+
+void createMinHeap(MINHEAP &minHeap, int n, int *freq);
+void check(int n, int m, int *freq, int optimalWPL);
+bool isPrefixCodes(string *codes, int *freq, int n);
+
+/*
+利用最小堆生成Huffman Tree ，生成的Huffman Tree作用只有一个，求出 optimal WPL 。2333~
+最小堆的生成也可以使用数组，顺序读入各个元素，根据权重生成最小堆，时间复杂度是 O(n) 。
+直接用 priority_queue 生成最小堆，时间复杂度是 O( nlog(n) ) 。简化了代码，但是效率稍差。
+*/
+int main(void) {
+	MINHEAP minHeap;
+	int n;
+	cin >> n;
+
+	int *freq = new int[n];	//创建一个数组，记录各个字符的权值，为判断是否是前缀码提供参数。
+	createMinHeap(minHeap, n, freq);
+	HuffmanTree *huffTree = new HuffmanTree;
+	huffTree->createHuffmanTreeByMinHeap(minHeap);
+	int optimalWPL = huffTree->WPL();
+	delete huffTree;
+	huffTree = NULL;
+
+	int m;
+	cin >> m;
+	check(n, m, freq, optimalWPL);
+	
+	return 0;
+}
+
+void createMinHeap(MINHEAP &minHeap, int n, int *freq) {
+	char ch;
+	for (int i = 0; i < n; i++) {
+		cin >> ch >> freq[i];
+		HuffmanNode *pNode = new HuffmanNode(freq[i]);
+		minHeap.push(pNode);
+	}
+}
+
+/*
+check 的内容有三步：
+1. 是否是最小带权路径长度？
+2. 是否是前缀码？
+3. 编码长度是否合理？
+n 个字符，最坏情况下，长这样：
+										   root
+										/			\
+									  o			leaf
+									/	\
+								  o	leaf
+							  ...	\
+							 ...		leaf
+							o
+						  /	  \
+					  leaf	  leaf
+所以编码最大长度 <= n - 1
+*/
+void check(int n, int m, int *freq, int optimalWPL) {
+	string *codes = new string[n];
+	char ch;
+	for (int i = 0; i < m; i++) {
+		bool flag = true;	//判断编码长度合理性的标志。
+		int wpl = 0;
+		for (int k = 0; k < n; k++) {
+			cin >> ch >> codes[k];
+			wpl += freq[k] * codes[k].length();
+			if (codes[k].length() > n - 1) flag = false;
+		}
+
+		if (flag && wpl == optimalWPL && isPrefixCodes(codes, freq, n))
+			cout << "Yes" << endl;
+		else
+			cout << "No" << endl;
+	}
+	delete[] codes;
+}
+
+//判断是否是前缀码采用的算法是生成一棵树——前缀码只能是处于叶节点的位置上。
+//也可以判断两两字符串是否互相包含。
+bool isPrefixCodes(string *codes, int *freq, int n) {
+	HuffmanNode *tree = new HuffmanNode;
+	for (int i = 0; i < n; i++) {
+		HuffmanNode *tmp = tree;
+		//为每一个编码生成相应的节点，0往左边，1往右边。
+		for (int k = 0; k < codes[i].length(); k++) {
+			if ('0' == codes[i].at(k)) {
+				if (NULL == tmp->left) tmp->left = new HuffmanNode;
+				tmp = tmp->left;
+			}
+			else if ('1' == codes[i].at(k)) {
+				if (NULL == tmp->right) tmp->right = new HuffmanNode;
+				tmp = tmp->right;
+			}
+			if (0 != tmp->weight) {	//经过一个叶节点。
+				delete tree;
+				return false;
+			}
+		}
+		//插入的位置已经有其他叶节点，或者插入的位置不是叶节点。
+		if (0 != tmp->weight || NULL != tmp->left || NULL != tmp->right) {
+			delete tree;
+			return false;
+		}
+		tmp->weight = freq[i];
+		/*
+		也可以判定插入的节点是不是新添加的叶节点：
+		if(0 == tmp->weight && NULL == tmp->left && NULL == tmp->right)
+			tmp->weight = freq[i];
+		else {
+			delete tree;
+			return false;
+		}
+		*/
+	}
+	delete tree;
+	return true;
+}
