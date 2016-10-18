@@ -1,0 +1,103 @@
+#include <iostream>
+#include <queue>
+#include <cstring>
+using namespace std;
+
+class Map {
+	public:
+		Map(int cnt);
+		~Map();
+		void DFS(int index = 0) const;
+		void BFS(int index = 0) const;
+		void resetVertex();
+		int getValueFromMatrix(int row, int col) const;
+		void setValue2Matrix(int row, int col, int val = 1);
+		void printFormattedTraversal(bool isDFS = true) const;
+	private:
+		int cnt;	//numbers of vertex.
+		bool *isVisited;	//vertex array.
+		int *pMatrix;
+};
+
+Map::Map(int cnt) {
+	this->cnt = cnt;
+	isVisited = new bool[cnt];
+	for(int i = 0; i < cnt; ++i) isVisited[i] = false;
+	pMatrix = new int[cnt * cnt];
+	memset(pMatrix, 0, cnt * cnt * sizeof(int));
+}
+
+Map::~Map() {
+	delete[] isVisited;
+	delete[] pMatrix;
+}
+
+void Map::DFS(int index) const {
+	cout << " " << index;
+	isVisited[index] = true;
+	for(int i = 0; i < cnt; ++i) {
+		if(getValueFromMatrix(index, i) > 0 && !isVisited[i])
+			DFS(i);
+	}
+}
+
+void Map::BFS(int index) const {
+	queue<int> que;
+	que.push(index);
+	while(!que.empty()) {
+		int value = que.front();
+		que.pop();
+		if(!isVisited[value]) {
+			cout << " " << value;
+			isVisited[value] = true;
+		}
+		
+		for(int i = 0; i < cnt; ++i)
+			if(getValueFromMatrix(value, i) > 0 && !isVisited[i])
+				que.push(i);
+	}
+}
+
+void Map::resetVertex() {
+	for(int i = 0; i < cnt; ++i)
+		isVisited[i] = false;
+}
+
+int Map::getValueFromMatrix(int row, int col) const {
+	return pMatrix[row * cnt + col];
+}
+
+void Map::setValue2Matrix(int row, int col, int val) {
+	pMatrix[row * cnt + col] = val;
+	pMatrix[col * cnt + row] = val;
+}
+
+void Map::printFormattedTraversal(bool isDFS) const {
+	for(int i = 0; i < cnt; ++i) {
+		if(!isVisited[i]) {
+			cout << "{";
+			if(isDFS) DFS(i);
+			else BFS(i);
+			cout << " }" << endl;
+		}
+	}
+}
+
+int main(void) {
+	int n, e;
+	cin >> n >> e;
+	Map *myMap = new Map(n);
+	for(int i = 0; i < e; ++i) {
+		int a, b;
+		cin >> a >> b;
+		myMap->setValue2Matrix(a, b);
+	}
+	
+	myMap->printFormattedTraversal();
+	myMap->resetVertex();
+	myMap->printFormattedTraversal(false);
+	
+	delete myMap;
+	myMap = nullptr;
+	return 0;
+}
