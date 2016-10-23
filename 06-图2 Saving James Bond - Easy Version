@@ -1,0 +1,78 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+struct Coordinate {
+	int x = 0;
+	int y = 0;
+	bool isVisited = false;
+};
+
+bool isSavable(Coordinate *pCoor, int n, int d);
+bool DFS(const Coordinate &coor, Coordinate *pCoor, int n, int d);
+bool isJumpable(const Coordinate &coorA, const Coordinate &coorB, double d);
+bool isSafe(const Coordinate &coor, double d);
+
+int main(void) {
+	int n, d;
+	cin >> n >> d;
+	Coordinate *pCoor = new Coordinate[n];
+	for (int i = 0; i < n; ++i)
+		cin >> pCoor[i].x >> pCoor[i].y;
+	
+	if (isSavable(pCoor, n, d)) 
+		cout << "Yes" << endl;
+	else 
+		cout << "No" << endl;
+
+	return 0;
+}
+
+bool isSavable(Coordinate *pCoor, int n, int d) {
+	vector<Coordinate> firstJump;
+	firstJump.reserve(n);
+	Coordinate center;
+	//第一跳能够跳到的鳄鱼坐标集合
+	for (int i = 0; i < n; ++i) {
+		if (isJumpable(center, pCoor[i], d + 7.5)) {
+			pCoor[i].isVisited = true;
+			firstJump.push_back(pCoor[i]);
+		}
+	}
+
+	for (auto iter = firstJump.cbegin(); iter != firstJump.cend(); ++iter) {
+		if (DFS(*iter, pCoor, n, d)) return true;
+	}
+
+	return false;
+}
+
+bool DFS(const Coordinate &coor, Coordinate *pCoor, int n, int d) {
+	if (isSafe(coor, d)) return true;
+
+	vector<Coordinate> coorVec;
+	coorVec.reserve(n);
+	for (int i = 0; i < n; ++i) {
+		if (!pCoor[i].isVisited && isJumpable(coor, pCoor[i], d)) {
+			pCoor[i].isVisited = true;
+			coorVec.push_back(pCoor[i]);
+		}
+	}
+
+	for (auto iter = coorVec.cbegin(); iter != coorVec.cend(); ++iter) {
+		if (DFS(*iter, pCoor, n, d)) return true;
+	}
+
+	return false;
+}
+
+bool isJumpable(const Coordinate &coorA, const Coordinate &coorB, double d) {
+	int x = coorA.x - coorB.x;
+	int y = coorA.y - coorB.y;
+	return sqrt(x * x + y * y) <= d ? true : false;
+}
+
+bool isSafe(const Coordinate &coor, double d) {
+	return (abs(coor.x) + d >= 50) || (abs(coor.y) + d >= 50) ? true : false;
+}
