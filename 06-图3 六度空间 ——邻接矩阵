@@ -1,0 +1,102 @@
+#include <iostream>
+#include <queue>
+#include <cstring>
+#include <cstdio>
+using namespace std;
+
+class MyMap {
+	using VertexType = bool;
+public:
+	MyMap(int vertexCnt);
+	~MyMap();
+	void addEdge(int indexA, int indexB);
+	int BFS(int index) const;
+	void output();
+
+private:
+	void resetVertex();
+
+	int vertexCnt;
+	VertexType *pVertex;
+	int *pEdge;
+};
+
+MyMap::MyMap(int vertexCnt) {
+	this->vertexCnt = vertexCnt;
+	pVertex = new VertexType[vertexCnt];
+	pEdge = new int[vertexCnt * vertexCnt];
+
+	for (int i = 0; i < vertexCnt; ++i)
+		pVertex[i] = false;
+	memset(pEdge, 0, vertexCnt * vertexCnt * sizeof(int));
+}
+
+MyMap::~MyMap() {
+	delete[] pVertex;
+	delete[] pEdge;
+}
+
+void MyMap::addEdge(int indexA, int indexB) {
+	pEdge[indexA * vertexCnt + indexB] = 1;
+	pEdge[indexB * vertexCnt + indexA] = 1;
+}
+
+int MyMap::BFS(int index) const {
+	int layer = 0;
+	int ret = 1;
+
+	queue<int> que;
+	que.push(index);
+	pVertex[index] = true;
+	int oneLayerCnt = que.size();
+
+	while (!que.empty()) {
+		int tmp = que.front();
+		que.pop();
+		--oneLayerCnt;
+
+		for (int i = 0; i < vertexCnt; ++i) {
+			if (pEdge[tmp * vertexCnt + i] > 0 && !pVertex[i]) {
+				que.push(i);
+				pVertex[i] = true;
+				++ret;
+			}
+		}
+
+		if (oneLayerCnt == 0) {
+			++layer;
+			oneLayerCnt = que.size();
+		}
+		if (layer == 6) break;
+	}
+	
+	return ret;
+}
+
+void MyMap::resetVertex() {
+	for (int i = 0; i < vertexCnt; ++i)
+		pVertex[i] = false;
+}
+
+void MyMap::output() {
+	for (int i = 0; i < vertexCnt; ++i) {
+		printf("%d: %.2f%%\n", i + 1, 100.0 * BFS(i) / vertexCnt);
+		resetVertex();
+	}
+}
+
+
+int main(void) {
+	int vertexCnt, edgeCnt;
+	cin >> vertexCnt >> edgeCnt;
+	MyMap aMap(vertexCnt);
+	for (int i = 0; i < edgeCnt; ++i) {
+		int a, b;
+		cin >> a >> b;
+		aMap.addEdge(a - 1, b - 1);
+	}
+
+	aMap.output();
+
+	return 0;
+}
