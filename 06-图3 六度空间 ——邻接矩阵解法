@@ -1,6 +1,5 @@
 #include <iostream>
 #include <queue>
-#include <cstring>
 #include <cstdio>
 using namespace std;
 
@@ -21,21 +20,21 @@ private:
 	int *pEdge;
 };
 
+inline
 MyMap::MyMap(int vertexCnt) {
 	this->vertexCnt = vertexCnt;
-	pVertex = new VertexType[vertexCnt];
-	pEdge = new int[vertexCnt * vertexCnt];
-
-	for (int i = 0; i < vertexCnt; ++i)
-		pVertex[i] = false;
-	memset(pEdge, 0, vertexCnt * vertexCnt * sizeof(int));
+	//value initialization.
+	pVertex = new VertexType[vertexCnt]();
+	pEdge = new int[vertexCnt * vertexCnt]();
 }
 
+inline
 MyMap::~MyMap() {
 	delete[] pVertex;
 	delete[] pEdge;
 }
 
+inline
 void MyMap::addEdge(int indexA, int indexB) {
 	pEdge[indexA * vertexCnt + indexB] = 1;
 	pEdge[indexB * vertexCnt + indexA] = 1;
